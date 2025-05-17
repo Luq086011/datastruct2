@@ -1,0 +1,10 @@
+{
+  "code-runner.executorMap": {
+    "cpp": "g++ main.cpp livestream.cpp seatassignment.cpp overflow.cpp -o main.exe && ./main.exe"
+  },
+  "code-runner.runInTerminal": true,
+"code-runner.clearPreviousOutput": true,
+"files.associations": {
+    "iostream": "cpp"
+}
+}
