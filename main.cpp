@@ -8,8 +8,10 @@ int main() {
     int choice;
     char name[50];
     int priority;
-    loadSpectators("spectators.csv");
+    initSeatLabels();
     loadSeat(); 
+    loadOverflow();
+    loadSpectators("spectators.csv");
 
     while (true) {
         cout << "\n=== Spectator System ===\n";
@@ -67,15 +69,6 @@ int main() {
             }
 
             cout << "[INFO] All possible spectators have been assigned seats.\n";
-            if (!isFull()) {
-                Spectator next = getNextSpectator();
-                assignSeat(next);
-                removeNextSpectator();
-            } else {
-                Spectator overflow = getNextSpectator();
-                addOverflow(overflow);
-                removeNextSpectator();
-            }
             break;
         case 3:
             releaseSeat();

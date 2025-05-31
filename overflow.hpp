@@ -6,5 +6,7 @@
 void addOverflow(Spectator s);
 void pullOverflow();
 void displayOverflow();
+void loadOverflow();
+void saveOverflow();
 
 #endif

@@ -12,26 +12,38 @@ int pqSize = 0;
 
 void loadSpectators(const char* filename) {
     ifstream fin(filename);
-    if (!fin) return;
+    if (!fin) {
+        cerr << "[INFO] No spectators file found: " << filename << endl;
+        return;
+    }
 
     string line;
     getline(fin, line); // skip header
 
     while (getline(fin, line)) {
+        if (line.empty()) continue;
+
         stringstream ss(line);
-        string nameStr, prioStr;
-        getline(ss, nameStr, ',');
-        getline(ss, prioStr, ',');
+        string ignoreSeat, nameStr, prioStr;
 
-        Spectator s;
-        strncpy(s.name, nameStr.c_str(), sizeof(s.name));
-        s.priority = stoi(prioStr);
+        if (!getline(ss, ignoreSeat, ',') ||
+            !getline(ss, nameStr, ',') ||
+            !getline(ss, prioStr, ',')) {
+            cerr << "[WARN] Skipping malformed line: " << line << endl;
+            continue;
+        }
 
-        addSpectator(s.name, s.priority);
+        try {
+            int priority = stoi(prioStr);
+            addSpectator(nameStr.c_str(), priority);
+        } catch (...) {
+            cerr << "[WARN] Skipping non-queue entry: " << line << endl;
+            continue;
+        }
     }
 
     fin.close();
-    cout << "Loaded spectators from file.\n";
+    cout << "Loaded spectators from file: " << filename << endl;
 }
 
 void addSpectator(const char* name, int priority) {

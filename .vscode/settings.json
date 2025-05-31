@@ -5,6 +5,8 @@
   "code-runner.runInTerminal": true,
 "code-runner.clearPreviousOutput": true,
 "files.associations": {
-    "iostream": "cpp"
+  "iostream": "cpp",
+  "iosfwd": "cpp",
+  "xstring": "cpp"
 }
 }

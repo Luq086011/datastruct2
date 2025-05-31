@@ -10,10 +10,19 @@ using namespace std;
 extern Spectator getNextSpectator();
 extern void removeNextSpectator();
 
-const int MAX_SEATS = 5;
 Seat seatList[MAX_SEATS];
 
-void loadSeatAssignmentsFromFile() {
+void initSeatLabels() {
+    int index = 0;
+    for (char row = 'A'; row <= 'F'; row++) {
+        for (int num = 1; num <= 10; num++) {
+            snprintf(seatList[index].label, sizeof(seatList[index].label), "%c%d", row, num);
+            seatList[index].occupied = false;  // just in case
+            index++;
+        }
+    }
+}
+void loadSeat() {
     ifstream fin("spectators.csv");
     if (!fin.is_open()) {
         cerr << "[INFO] No previous spectators.csv found. Skipping load.\n";
@@ -21,51 +30,52 @@ void loadSeatAssignmentsFromFile() {
     }
 
     string line;
-    getline(fin, line); // Skip header
+    getline(fin, line); // skip header
 
     while (getline(fin, line)) {
-        stringstream ss(line);
-        string seatStr, name, priorityStr;
+        if (line.empty() || line.find_first_not_of(" \t\r\n") == string::npos) {
+            continue;
+        }
 
-        getline(ss, seatStr, ',');
+        stringstream ss(line);
+        string seatLabel, name, priorityStr;
+
+        getline(ss, seatLabel, ',');
         getline(ss, name, ',');
         getline(ss, priorityStr, ',');
 
-        // Skip malformed or empty fields
-        if (seatStr.empty() || name.empty() || priorityStr.empty()) {
-            cerr << "[WARN] Malformed line in CSV: " << line << endl;
+        if (seatLabel.empty() || name.empty() || priorityStr.empty()) {
+            cerr << "[WARN] Malformed line: " << line << endl;
             continue;
         }
-
-        int seatIndex, priority;
 
         try {
-            seatIndex = stoi(seatStr) - 1;
-            priority = stoi(priorityStr);
-        } catch (const invalid_argument& e) {
-            cerr << "[ERROR] Non-numeric value in CSV: " << line << endl;
-            continue;
-        } catch (const out_of_range& e) {
-            cerr << "[ERROR] Number out of range in CSV: " << line << endl;
-            continue;
-        }
+            int priority = stoi(priorityStr);
 
-        // Validate seat index range
-        if (seatIndex < 0 || seatIndex >= MAX_SEATS) {
-            cerr << "[ERROR] Seat index out of range in CSV: " << seatStr << endl;
-            continue;
-        }
+            // Find seat by label
+            bool found = false;
+            for (int i = 0; i < MAX_SEATS; i++) {
+                if (seatLabel == seatList[i].label) {
+                    seatList[i].occupied = true;
+                    strcpy(seatList[i].occupant.name, name.c_str());
+                    seatList[i].occupant.priority = priority;
+                    found = true;
+                    break;
+                }
+            }
 
-        // Assign to seat list
-        seatList[seatIndex].occupied = true;
-        strcpy(seatList[seatIndex].occupant.name, name.c_str());
-        seatList[seatIndex].occupant.priority = priority;
+            if (!found) {
+                cerr << "[ERROR] Seat label not recognized: " << seatLabel << endl;
+            }
+
+        } catch (const exception& e) {
+            cerr << "[ERROR] Failed to load row: " << line << " | Reason: " << e.what() << endl;
+        }
     }
 
     fin.close();
-    cout << "[INFO] Loaded seat data from spectators.csv\n";
+    cout << "[INFO] Loaded seat assignments from spectators.csv\n";
 }
-
 bool isFull() {
     for (int i = 0; i < MAX_SEATS; i++) {
         if (!seatList[i].occupied)
@@ -92,7 +102,7 @@ void saveSeat() {
     fout << "Seat,Name,Priority\n";
     for (int i = 0; i < MAX_SEATS; i++) {
         if (seatList[i].occupied) {
-            fout << (i + 1) << "," << seatList[i].occupant.name << "," << seatList[i].occupant.priority << "\n";
+            fout << seatList[i].label << "," << seatList[i].occupant.name << "," << seatList[i].occupant.priority << "\n";
         }
     }
     fout.close();
